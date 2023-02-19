@@ -32,7 +32,9 @@ func (u *UpdateBuilder) Where(cons ...*WhereBuf) *UpdateBuilder {
 
 func (u *UpdateBuilder) BuildWithValue() (string, []any) {
 	count := 0
-	ss := new(strings.Builder)
+	ss := get()
+	defer put(ss)
+	ss.Reset()
 	ss.WriteString("UPDATE ")
 	ss.WriteString(u.table)
 	ss.WriteString(" SET ")

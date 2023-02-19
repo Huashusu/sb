@@ -1,7 +1,5 @@
 package sb
 
-import "strings"
-
 type DeleteBuilder struct {
 	table  string
 	where  []*WhereBuf
@@ -20,7 +18,9 @@ func (d *DeleteBuilder) Where(cons ...*WhereBuf) *DeleteBuilder {
 }
 
 func (d *DeleteBuilder) BuildWithValue() (string, []any) {
-	ss := new(strings.Builder)
+	ss := get()
+	defer put(ss)
+	ss.Reset()
 	ss.WriteString("DELETE FROM ")
 	ss.WriteByte('`')
 	ss.WriteString(d.table)

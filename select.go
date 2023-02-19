@@ -3,8 +3,41 @@ package sb
 import (
 	"bytes"
 	"strconv"
-	"strings"
+	"sync"
 )
+
+var wherePool = &sync.Pool{
+	New: func() any {
+		return new(WhereBuf)
+	},
+}
+
+func getWhere() *WhereBuf {
+	w := wherePool.Get().(*WhereBuf)
+	w.reset()
+	return w
+}
+
+func putWhere(buf *WhereBuf) {
+	wherePool.Put(buf)
+}
+
+var joinPool = &sync.Pool{
+	New: func() any {
+		return new(JoinBuf)
+	},
+}
+
+func getJoin() *JoinBuf {
+	j := joinPool.Get().(*JoinBuf)
+	j.buf.Reset()
+	j.val = nil
+	return j
+}
+
+func putJoin(buf *JoinBuf) {
+	joinPool.Put(buf)
+}
 
 // WhereBuf 只是创建where条件，加个占位符，暂时不提供附带值的方法，敬请期待。而且带值方法，还需要安全性校验、注入校验
 type WhereBuf struct {
@@ -14,6 +47,7 @@ type WhereBuf struct {
 }
 
 func (w *WhereBuf) Byte() []byte {
+	defer putWhere(w)
 	return w.buf.Next(w.buf.Len())
 }
 
@@ -27,6 +61,12 @@ func (w *WhereBuf) Set(s string, val ...any) *WhereBuf {
 	w.buf.WriteString(s)
 	w.val = val
 	return w
+}
+
+func (w *WhereBuf) reset() {
+	w.buf.Reset()
+	w.ty = AND
+	w.val = nil
 }
 
 // And 设置这个条件是and
@@ -43,7 +83,7 @@ func (w *WhereBuf) Or() *WhereBuf {
 
 // IsNULL 空值
 func IsNULL(col string) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" IS NULL")
 	return w
@@ -51,7 +91,7 @@ func IsNULL(col string) *WhereBuf {
 
 // IsNotNULL 非空值
 func IsNotNULL(col string) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" IS NOT NULL")
 	return w
@@ -59,7 +99,7 @@ func IsNotNULL(col string) *WhereBuf {
 
 // Eq 等于
 func Eq(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" = ?")
 	w.val = val
@@ -68,7 +108,7 @@ func Eq(col string, val ...any) *WhereBuf {
 
 // NotEq 不等于
 func NotEq(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" != ?")
 	w.val = val
@@ -77,7 +117,7 @@ func NotEq(col string, val ...any) *WhereBuf {
 
 // Gt 大于
 func Gt(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" > ?")
 	w.val = val
@@ -86,7 +126,7 @@ func Gt(col string, val ...any) *WhereBuf {
 
 // GtEq 大于等于
 func GtEq(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" >= ?")
 	w.val = val
@@ -95,7 +135,7 @@ func GtEq(col string, val ...any) *WhereBuf {
 
 // Lt 小于
 func Lt(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" < ?")
 	w.val = val
@@ -104,7 +144,7 @@ func Lt(col string, val ...any) *WhereBuf {
 
 // LtEq 小于等于
 func LtEq(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" <= ?")
 	w.val = val
@@ -113,7 +153,7 @@ func LtEq(col string, val ...any) *WhereBuf {
 
 // In 输入参数是要In几个值，这边给几个问号
 func In(col string, n int, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" IN (")
 	for i := 0; i < n; i++ {
@@ -129,7 +169,7 @@ func In(col string, n int, val ...any) *WhereBuf {
 
 // NotIn 输入参数是列名和值的数量，解释同 In 方法
 func NotIn(col string, n int, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" NOT IN (")
 	for i := 0; i < n; i++ {
@@ -145,7 +185,7 @@ func NotIn(col string, n int, val ...any) *WhereBuf {
 
 // Like 对列进行like匹配
 func Like(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" LIKE ?")
 	w.val = val
@@ -154,7 +194,7 @@ func Like(col string, val ...any) *WhereBuf {
 
 // BetWeen 范围查询
 func BetWeen(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" BETWEEN ? AND ?")
 	w.val = val
@@ -163,7 +203,7 @@ func BetWeen(col string, val ...any) *WhereBuf {
 
 // NotBetWeen 范围排除查询
 func NotBetWeen(col string, val ...any) *WhereBuf {
-	w := new(WhereBuf)
+	w := getWhere()
 	w.buf.WriteString(col)
 	w.buf.WriteString(" NOT BETWEEN ? AND ?")
 	w.val = val
@@ -232,7 +272,7 @@ const (
 func Select(Cols ...string) *SelectBuilder {
 	return &SelectBuilder{
 		cols:        Cols,
-		join:        new(bytes.Buffer),
+		join:        get(),
 		limitStatus: false,
 	}
 }
@@ -249,12 +289,13 @@ type JoinBuf struct {
 }
 
 func (j *JoinBuf) Byte() []byte {
+	defer putJoin(j)
 	return j.buf.Bytes()
 }
 
 // InnerJoin 构建内连接buf
 func InnerJoin(InnerTable, Condition string, where ...*WhereBuf) *JoinBuf {
-	j := new(JoinBuf)
+	j := getJoin()
 	j.buf.WriteString("INNER JOIN ")
 	j.buf.WriteString(InnerTable)
 	j.buf.WriteString(" ON ")
@@ -276,7 +317,7 @@ func InnerJoin(InnerTable, Condition string, where ...*WhereBuf) *JoinBuf {
 
 // LeftJoin 构建左连接buf
 func LeftJoin(LeftTable, Condition string, where ...*WhereBuf) *JoinBuf {
-	j := new(JoinBuf)
+	j := getJoin()
 	j.buf.WriteString("LEFT JOIN ")
 	j.buf.WriteString(LeftTable)
 	j.buf.WriteString(" ON ")
@@ -298,7 +339,7 @@ func LeftJoin(LeftTable, Condition string, where ...*WhereBuf) *JoinBuf {
 
 // RightJoin 构建右连接buf
 func RightJoin(RightTable, Condition string, where ...*WhereBuf) *JoinBuf {
-	j := new(JoinBuf)
+	j := getJoin()
 	j.buf.WriteString("RIGHT JOIN ")
 	j.buf.WriteString(RightTable)
 	j.buf.WriteString(" ON ")
@@ -410,7 +451,9 @@ func (s *SelectBuilder) BuildWithValue() (string, []any) {
 	i := 0
 
 	// select string
-	ss := new(strings.Builder)
+	ss := get()
+	defer put(ss)
+	ss.Reset()
 	ss.Grow(1 << 10)
 	if s.subQueryStatus {
 		ss.WriteByte('(')

@@ -1,9 +1,5 @@
 package sb
 
-import (
-	"strings"
-)
-
 type InsertBuilder struct {
 	table string
 	cols  []string
@@ -52,7 +48,9 @@ func (i *InsertBuilder) BuildWithValue() (string, []any) {
 		return "", nil
 	}
 
-	ss := new(strings.Builder)
+	ss := get()
+	defer put(ss)
+	ss.Reset()
 	ss.WriteString("INSERT INTO `")
 	ss.WriteString(i.table)
 	ss.WriteString("` ( ")
