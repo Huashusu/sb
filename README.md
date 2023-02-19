@@ -13,7 +13,7 @@
 ## Install
 
 ```bash
-go get github.com/huashusu/sb@v0.1.1
+go get github.com/huashusu/sb@v0.1.2
 ```
 
 ## Benchmark Test
