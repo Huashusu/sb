@@ -13,7 +13,7 @@
 ## Install
 
 ```bash
-go get github.com/huashusu/sb@v0.1.1
+go get github.com/huashusu/sb@v0.1.2
 ```
 
 ## Benchmark Test
@@ -24,14 +24,14 @@ CPU：AMD Ryzen 5 4600H with Radeon Graphics
 
 | Benchmark Name |  |      | ||
 | -------------- | :--: | :--: |:--:|:--:|
-|BenchmarkDeleteSimple-12|9072427|131.5 ns/op|112 B/op|3 allocs/op|
-|BenchmarkDeleteComplexWithValue-12|1838894|653.3 ns/op |560 B/op|13 allocs/op|
-|BenchmarkInsertSimpleWithValue-12|2720688 |429.3 ns/op|400 B/op|7 allocs/op|
-|BenchmarkInsertComplexWithValue-12|1697724|723.3 ns/op| 688 B/op|9 allocs/op|
-|BenchmarkSelectSimpleWithValue-12|1642656|751.0 ns/op|1560 B/op |9 allocs/op|
-|BenchmarkSelectComplexWithValue-12|268846|4079 ns/op|5011 B/op|51allocs/op|
-|BenchmarkUpdateSimpleWithValue-12|1262418|974.6 ns/op|824 B/op  |16 allocs/op|
-|BenchmarkUpdateComplexWithValue-12 | 1259550| 936.5 ns/op| 824 B/op | 16 allocs/op|
+|BenchmarkDeleteSimple-12|10306125|113.9 ns/op|88 B/op|2 allocs/op|
+|BenchmarkDeleteComplexWithValue-12|2509845|481.8 ns/op|208 B/op|7 allocs/op|
+|BenchmarkInsertSimpleWithValue-12|3310828|354.2 ns/op|240 B/op|4 allocs/op|
+|BenchmarkInsertComplexWithValue-12|1541556|754.8 ns/op|544 B/op|6 allocs/op|
+|BenchmarkSelectSimpleWithValue-12|1341458|880.4 ns/op|1465 B/op|8 allocs/op|
+|BenchmarkSelectComplexWithValue-12|331906|3771 ns/op|3929 B/op|34 allocs/op|
+|BenchmarkUpdateSimpleWithValue-12|1731949|684.1 ns/op|384 B/op|8 allocs/op|
+|BenchmarkUpdateComplexWithValue-12|1762831|675.7 ns/op|384 B/op|8 allocs/op|
 
 ## Examples
 
