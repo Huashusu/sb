@@ -15,7 +15,11 @@ func Insert(TableName string) *InsertBuilder {
 
 // Column 设置插入的列名
 func (i *InsertBuilder) Column(cols ...string) *InsertBuilder {
-	i.cols = cols
+	if i.cols == nil {
+		i.cols = cols
+	} else if cols != nil {
+		i.cols = append(i.cols, cols...)
+	}
 	return i
 }
 

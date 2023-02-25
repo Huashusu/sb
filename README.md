@@ -13,7 +13,7 @@
 ## Install
 
 ```bash
-go get github.com/huashusu/sb@v0.1.2
+go get github.com/huashusu/sb@v0.1.3
 ```
 
 ## Benchmark Test
@@ -201,5 +201,5 @@ func main() {
 
 ### 后续计划：
 
-1. 优化，感觉可以上Pool优化`BuildWithValue`方法
+1. ~~优化，感觉可以上Pool优化`BuildWithValue`方法~~
 2. ...

@@ -16,17 +16,29 @@ func Update(TableName string) *UpdateBuilder {
 }
 
 func (u *UpdateBuilder) Column(cols ...string) *UpdateBuilder {
-	u.cols = cols
+	if u.cols == nil {
+		u.cols = cols
+	} else if cols != nil {
+		u.cols = append(u.cols, cols...)
+	}
 	return u
 }
 
 func (u *UpdateBuilder) Set(vals ...any) *UpdateBuilder {
-	u.values = vals
+	if u.values == nil {
+		u.values = vals
+	} else if vals != nil {
+		u.values = append(u.values, vals...)
+	}
 	return u
 }
 
 func (u *UpdateBuilder) Where(cons ...*WhereBuf) *UpdateBuilder {
-	u.where = cons
+	if u.where == nil {
+		u.where = cons
+	} else if cons != nil {
+		u.where = append(u.where, cons...)
+	}
 	return u
 }
 

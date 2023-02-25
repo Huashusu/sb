@@ -13,7 +13,11 @@ func Delete(TableName string) *DeleteBuilder {
 }
 
 func (d *DeleteBuilder) Where(cons ...*WhereBuf) *DeleteBuilder {
-	d.where = cons
+	if d.where == nil {
+		d.where = cons
+	} else if cons != nil {
+		d.where = append(d.where, cons...)
+	}
 	return d
 }
 

@@ -279,7 +279,11 @@ func Select(Cols ...string) *SelectBuilder {
 
 // From 设置从哪张表查询，多表情况用Join添加
 func (s *SelectBuilder) From(TableName ...string) *SelectBuilder {
-	s.from = TableName
+	if s.from == nil {
+		s.from = TableName
+	} else if TableName != nil {
+		s.from = append(s.from, TableName...)
+	}
 	return s
 }
 
@@ -374,25 +378,41 @@ func (s *SelectBuilder) Join(join *JoinBuf, val ...any) *SelectBuilder {
 // Where 添加where条件，提供了几个常用的where条件可供使用。
 // 默认是AND连接条件，如果是OR请不要放第一个，原因：不能对条件排序，避免破坏顺序造成的潜在sql优化问题，
 func (s *SelectBuilder) Where(cons ...*WhereBuf) *SelectBuilder {
-	s.where = cons
+	if s.where == nil {
+		s.where = cons
+	} else if cons != nil {
+		s.where = append(s.where, cons...)
+	}
 	return s
 }
 
 // GroupBy 暂时只对单列分组，多列分组情况还需考虑
 func (s *SelectBuilder) GroupBy(GroupCol ...string) *SelectBuilder {
-	s.group = GroupCol
+	if s.group == nil {
+		s.group = GroupCol
+	} else if GroupCol != nil {
+		s.group = append(s.group, GroupCol...)
+	}
 	return s
 }
 
 // Having 是对聚合函数后的值进行where判断，所以这里就直接拿WhereBuf那套方法了
 func (s *SelectBuilder) Having(cons ...*WhereBuf) *SelectBuilder {
-	s.having = cons
+	if s.having == nil {
+		s.having = cons
+	} else if cons != nil {
+		s.having = append(s.having, cons...)
+	}
 	return s
 }
 
 // OrderBy 多多个字段进行排序处理
 func (s *SelectBuilder) OrderBy(orders ...*OrderBuf) *SelectBuilder {
-	s.order = orders
+	if s.order == nil {
+		s.order = orders
+	} else if orders != nil {
+		s.order = append(s.order, orders...)
+	}
 	return s
 }
 
@@ -469,7 +489,7 @@ func (s *SelectBuilder) BuildWithValue() (string, []any) {
 			}
 		}
 	} else {
-		ss.WriteString("*")
+		ss.WriteString(AllCol)
 	}
 
 	// set from table
